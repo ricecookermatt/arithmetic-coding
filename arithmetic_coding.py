@@ -5,7 +5,7 @@ Created on Sat Jan 11 13:52:45 2025
 
 @author: matthew
 
-This Python scripts performs lossless data compression using arithmetic coding
+This Python script performs lossless data compression using arithmetic coding
 
 Arithmetic coding steps on a fixed length of data:
     1.  Compute the probability mass function of the data symbols
@@ -156,7 +156,7 @@ def binary_encode(decimal_code):
     cumsum = 0.0
     binary_encoding = ''
     
-    #Perform successive approximation to converge onto the binary representation
+    #Perform successive approximation to converge to the binary representation
     for i in range(1, upper_bit_bound + 1):
         
         if (cumsum + 2**(-i) > decimal_code):
