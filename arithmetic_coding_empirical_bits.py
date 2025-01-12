@@ -40,7 +40,7 @@ Theorized bound:
 
 import numpy as np
 import matplotlib.pyplot as plt
-from arithmetic_coding import compute_pmf, compute_cdf, decimal_encode, binary_encode
+from arithmetic_coding import arithmetic_encode
 
 
 #Testing begins here
@@ -69,22 +69,21 @@ for i in range(max_sims):
     #Randomize data using discrete uniform distribution
     data = rng.integers(0, max(symbols), data_length, endpoint=True)
     
-    pmf = compute_pmf(data)
-    cdf = compute_cdf(pmf)
-    dec_code = decimal_encode(data, pmf, cdf)
-    bin_code = binary_encode(dec_code)
+    bin_code = arithmetic_encode(data)
     
-    min_bits = 1 + bin_code.rfind('1')
+    #Need to add 1 since start at 0 and subtract by 2 since string prefix '0b'
+    min_bits = 1 + bin_code.rfind('1') - 2
     num_bits[i] = min_bits
     
-    
-print("Empirical bound:", max(num_bits), "bits")
+
+empirical_bound = max(num_bits)
+print("Empirical bound:", empirical_bound, "bits")
 
 #Minimum number of bits will be 1 for the case where data is all 0's or 1's
 #Need to add +2 to end of np.arange() because: 1) up to but not including
 #1) up to but not including caused by arange()
 #2) up to but not including caused by histogram()
-bin_edges = np.arange(1, 25+1+1)
+bin_edges = np.arange(1, 25+1+1, 0.5)
 plt.hist(num_bits, bins=bin_edges, density=True, align='left', edgecolor = 'k')
 
 plt.xlabel("Minimum number of bits")
