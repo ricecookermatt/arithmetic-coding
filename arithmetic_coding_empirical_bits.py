@@ -54,19 +54,26 @@ from arithmetic_coding import arithmetic_encode
 #Num of combinations (assuming order matters): M^N
 #N = data length, M = number of symbols
 
-data_length = 8
+data_length = 8 #Number of ASCII characters in the text
 
-num_unique_symbols = 2
+#block size. 1 block represents 1 ASCII character
+#i.e. N=4, M=2: [A, B, A, B] <-- Actually 32-bit long data with every byte
+#having 2 different possible combinations
+#To convert bit to block: Nblock = Nbit/8, Mblock = Mbit^8
+num_unique_symbols = 96 #96 will cover all printable standard ASCII characters (including LF)
 symbols = np.arange(num_unique_symbols)
 
-ratio = data_length / num_unique_symbols
 
-theoretical_bound = np.int64(1 + ratio*np.log2( data_length**(num_unique_symbols) ) )
-print("Theoretical bound:", theoretical_bound, "bits")
+#Can get so large that np.log2() can't calculate
+#Uncomment and run smaller sims and rely on Central Limit Theorem
+#ratio = data_length / num_unique_symbols
+#theoretical_bound = np.int64(1 + ratio*np.log2( data_length**(num_unique_symbols) ) )
+#print("Theoretical bound:", theoretical_bound, "bits")
 
 
 #Maximum number of combinations
-max_sims = num_unique_symbols**data_length
+#max_sims = num_unique_symbols**data_length
+max_sims = 1000000
 num_bits = np.zeros(max_sims, dtype='int64')
 
 #Create generator object
@@ -76,8 +83,10 @@ rng = np.random.default_rng()
 for i in range(max_sims):
     #Randomize data using discrete uniform distribution
     data = rng.integers(0, max(symbols), data_length, endpoint=True)
+    #print(data)
     
     bin_code = arithmetic_encode(data)
+    #print(bin_code)
     
     #Need to add 1 since start at 0 and subtract by 2 since string prefix '0b'
     min_bits = 1 + bin_code.rfind('1') - 2
@@ -104,7 +113,7 @@ plt.bar(bin_edges[:-1], x[0], edgecolor = 'k')
 
 #Find expected number of bits via dot product
 #@ operator is shorthand for np.matmul()
-#For N = 8, M = 8, E[X] rounded up = 21
+#For N=8, M=95, E[X]=20
 avg_b = x[0] @ x[1][:-1]
 print("Expected number of bits:", avg_b, "bits")
 
