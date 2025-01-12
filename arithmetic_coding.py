@@ -20,10 +20,16 @@ TO-DO:
     --Utilize Python any() and count() function for calculating pmf
     --Look into using dictionaries instead of a list of tuples
     --Look into using Counter from collections
+    --Bug due to relying on sort() which sorts only on first index and not CDF.
+    Need to sort by CDF first and then secondary sort on ASCII
+    --Clean up decimal encode/decode to not rely on pmf
 
 """
 
-    
+#-----------------------------------------------------------------------------
+# Encoding
+#-----------------------------------------------------------------------------
+
 #1. Compute PMF
 #-----------------------------------------------------------------------------
 def compute_pmf(text):
@@ -183,3 +189,62 @@ def arithmetic_encode(text):
     bin_code = binary_encode(dec_code)
     
     return bin_code
+
+#-----------------------------------------------------------------------------
+# Decoding
+#-----------------------------------------------------------------------------
+
+#1. Perform decimal decoding
+#-----------------------------------------------------------------------------
+def binary_decode(binary_code):
+    #Input: Arithmetic coded 25-bit binary string with prefix '0b'
+    #Output: Arithmetic code in decimal
+    
+    #Remove '0b' prefix
+    binary_string = binary_code[2:]
+    
+    dec_val = 0.0
+    
+    #Convert from binary to decimal
+    for string_pos in range(0, 25):
+        if binary_string[string_pos] == '1':
+            
+            fract_pos = string_pos + 1
+            dec_val += 2**(-fract_pos)
+    
+    return dec_val
+
+#2. Perform arithmetic decoding
+#-----------------------------------------------------------------------------
+def decimal_decode(dec_val, pmf, cdf):
+    #Input: Decimal coded input and its cdf and pmf
+    #Output: Decoded text
+    
+    decoded_text = ''
+    
+    
+    for data_pos in range(8):
+        #Perform CDF check on dec_val
+        for i in range( len(cdf) ):
+            if (dec_val < cdf[i][1]):
+                use_cdf_index = i
+                
+                #Update codeword
+                dec_val = ( dec_val - (cdf[use_cdf_index][1] - pmf[use_cdf_index][1]) ) / pmf[use_cdf_index][1]
+                decoded_text += cdf[use_cdf_index][0]
+                
+                #Finish for loop if we found our match early
+                break
+    
+    return decoded_text
+
+data = 'DACDDBCD'
+print(data)
+
+pmf = compute_pmf(data)
+cdf = compute_cdf(pmf)
+enc = arithmetic_encode(data)
+
+dec_val = binary_decode(enc)
+data_recovered = decimal_decode(dec_val, pmf, cdf)
+print(data_recovered)
