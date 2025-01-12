@@ -20,9 +20,9 @@ TO-DO:
     --Utilize Python any() and count() function for calculating pmf
     --Look into using dictionaries instead of a list of tuples
     --Look into using Counter from collections
-    --Bug due to relying on sort() which sorts only on first index and not CDF.
-    Need to sort by CDF first and then secondary sort on ASCII
     --Clean up decimal encode/decode to not rely on pmf
+    --Instead of iteratively checking a binary string for decode, use
+    a dot product method
 
 """
 
@@ -69,8 +69,8 @@ def compute_pmf(text):
         char_pmf.append( (char_list[i], char_count[i]) )
         
         
-    #Sort the list in ascending order
-    char_pmf.sort()
+    #Sort the list in ascending order based on pmf (second element) then A-Z
+    char_pmf.sort(key=lambda char_pmf: char_pmf[1])
     
     return char_pmf
 
@@ -174,6 +174,9 @@ def binary_encode(decimal_code):
     '''
     
     #Give output in consitent number of bits by scaling by 2^25
+    #Scale by 25 bits because that is the WC bound (theoretical and empirical)
+    #For performing empirical testing, scale by a larger number to avoid
+    #any possible loss of precision
     fxp_int = int( decimal_code * (2**25) )
     binary_encoding = bin(fxp_int)
         
@@ -238,6 +241,7 @@ def decimal_decode(dec_val, pmf, cdf):
     
     return decoded_text
 
+'''
 data = 'DACDDBCD'
 print(data)
 
@@ -248,3 +252,4 @@ enc = arithmetic_encode(data)
 dec_val = binary_decode(enc)
 data_recovered = decimal_decode(dec_val, pmf, cdf)
 print(data_recovered)
+'''
