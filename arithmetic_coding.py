@@ -7,30 +7,24 @@ Created on Sat Jan 11 13:52:45 2025
 
 This Python scripts performs lossless data compression using arithmetic coding
 
-Arithmetic coding steps:
-    1.  Read data
-    2.  Compute the probability mass function of the data symbols
-    3.  Compute the cumulative distribution function using the pmf
-    4.  Perform decimal encoding to find the lower and upper interval bounds by
+Arithmetic coding steps on a fixed length of data:
+    1.  Compute the probability mass function of the data symbols
+    2.  Compute the cumulative distribution function using the pmf
+    3.  Perform decimal encoding to find the lower and upper interval bounds by
     iterating through the data symbols.
-    5.  Take the midpoint (average) of the lower and upper bounds and perform
+    4.  Take the midpoint (average) of the lower and upper bounds and perform
     binary encoding (converting to fixed point)
     
     
 TO-DO:
     --Utilize Python any() and count() function for calculating pmf
     --Look into using dictionaries instead of a list of tuples
+    --Look into using Counter from collections
 
 """
 
     
-#1. Read data
-#-----------------------------------------------------------------------------
-text = "DACDDBCD"
-print(text)
-
-
-#2. Compute PMF
+#1. Compute PMF
 #-----------------------------------------------------------------------------
 def compute_pmf(text):
     #Input: List of data or a string
@@ -74,10 +68,8 @@ def compute_pmf(text):
     
     return char_pmf
 
-pmf = compute_pmf(text)
 
-
-#3. Compute CDF
+#2. Compute CDF
 #-----------------------------------------------------------------------------
 def compute_cdf(char_pmf):
     #Input: List of tuples which contain the symbols and their pmf
@@ -95,10 +87,8 @@ def compute_cdf(char_pmf):
     
     return char_cdf
 
-cdf = compute_cdf(pmf)
 
-
-#4. Perform decimal encoding
+#3. Perform decimal encoding
 #-----------------------------------------------------------------------------
 def decimal_encode(text, char_pmf, char_cdf):
     #Input: List of data or a string, pmf list of tuples, cdf  list of tuples
@@ -149,33 +139,32 @@ def decimal_encode(text, char_pmf, char_cdf):
     decimal_encoding = (encoding_upper + encoding_lower) / 2
     
     return decimal_encoding
-    #return delta
-
-dec_code = decimal_encode(text, pmf, cdf)
-print(dec_code)
 
     
-#5. Perform binary encoding
+#4. Perform binary encoding
 #-----------------------------------------------------------------------------
-#Determine number of bits
-#From empirical testing, need 15 bits max to compress a data with conditions:
-#length of 8 chars, #4 unique characters max
-
-#For data length of 8 chars with 8 unique chars max: 22 bits
-#Precision = 2^(-22) = 2.384185791015625e-07 = 238.4185791015625e-09
 def binary_encode(decimal_code):
     #Input: Decimal coded input between 0 and 1
-    #Output: Unsigned Fixed-point binary coded output scaled by 2^fract_bits
+    #Output: Unsigned Fixed-point binary coded output
     
-    precision = 2**(-22)
     
-    #Convert to UQ0.22 format (0 integer bits, 22 fractional bits)
-    bin_encoding = int(decimal_code * (2**22))
+    #For testing purposes, chose a value greater than the theoretical bound
+    #Chose value closest to a power of 2
+    upper_bit_bound = 32
     
-    #Represent as binary
-    binary_encoding = bin(bin_encoding)
     
+    cumsum = 0.0
+    binary_encoding = ''
+    
+    #Perform successive approximation to converge onto the binary representation
+    for i in range(1, upper_bit_bound + 1):
+        
+        if (cumsum + 2**(-i) > decimal_code):
+            #If went over, then do not contribute this fractional bit
+            binary_encoding += '0'
+        else:
+            #If did not go over, then contribute this fractional bit
+            cumsum += 2**(-i)
+            binary_encoding += '1'
+        
     return binary_encoding
-
-bin_code = binary_encode(dec_code)
-print(bin_code)
