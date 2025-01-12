@@ -54,7 +54,9 @@ from arithmetic_coding import arithmetic_encode
 #Num of combinations (assuming order matters): M^N
 #N = data length, M = number of symbols
 
-data_length = 8 #Number of ASCII characters in the text
+data_length = 16 #Number of ASCII characters in the text
+data_bit_length = 8*data_length
+print("Uncoded data length:", data_bit_length, "bits")
 
 #block size. 1 block represents 1 ASCII character
 #i.e. N=4, M=2: [A, B, A, B] <-- Actually 32-bit long data with every byte
@@ -64,16 +66,14 @@ num_unique_symbols = 96 #96 will cover all printable standard ASCII characters (
 symbols = np.arange(num_unique_symbols)
 
 
-#Can get so large that np.log2() can't calculate
-#Uncomment and run smaller sims and rely on Central Limit Theorem
-#ratio = data_length / num_unique_symbols
-#theoretical_bound = np.int64(1 + ratio*np.log2( data_length**(num_unique_symbols) ) )
-#print("Theoretical bound:", theoretical_bound, "bits")
+theoretical_bound = np.int64(1 + data_length * -np.log2( 1/data_length ))
+print("Theoretical bound:", theoretical_bound, "bits")
 
 
 #Maximum number of combinations
 #max_sims = num_unique_symbols**data_length
-max_sims = 1000000
+#If running 1 giant sim, then might be better running smaller sims and using central limit theorem
+max_sims = 100000
 num_bits = np.zeros(max_sims, dtype='int64')
 
 #Create generator object
@@ -92,9 +92,11 @@ for i in range(max_sims):
     min_bits = 1 + bin_code.rfind('1') - 2
     num_bits[i] = min_bits
     
-
 empirical_bound = max(num_bits)
 print("Empirical bound:", empirical_bound, "bits")
+
+#With an empirical bound for our application (16 total chars, 96 possible chars)
+#Only need 53 bits.  Can zero-pad to 56 bits and perform 7/8 LDPC coding to get 64 bits
 
 #Minimum number of bits will be 1 for the case where data is all 0's or 1's
 #Need to add +1 to end of np.arange() because: 
@@ -104,7 +106,9 @@ print("Empirical bound:", empirical_bound, "bits")
 #First bin will be [1, 2)
 #Second bin will be [2, 3)
 #Third bin will be [3, 4)
-bin_edges = np.arange(1, 25 + 1 + 1)
+
+bit_limit = 64
+bin_edges = np.arange(1, bit_limit + 1 + 1)
 
 
 x = np.histogram(num_bits, bins=bin_edges, density=True)
@@ -126,5 +130,5 @@ plt.title(title)
 plt.grid()
 plt.minorticks_on()
 
-plt.xlim([0, 25+1])
+plt.xlim([0, bit_limit+1])
 plt.ylim([0, 1])
