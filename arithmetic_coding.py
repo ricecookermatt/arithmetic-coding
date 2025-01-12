@@ -145,12 +145,11 @@ def decimal_encode(text, char_pmf, char_cdf):
 #-----------------------------------------------------------------------------
 def binary_encode(decimal_code):
     #Input: Decimal coded input between 0 and 1
-    #Output: Unsigned Fixed-point binary coded output
+    #Output: Unsigned Fixed-point binary coded output (UQ0.25 format)
     
-    
-    #For testing purposes, chose a value greater than the theoretical bound
-    #Chose value closest to a power of 2
-    upper_bit_bound = 32
+    '''
+    #Based on theoretical and empirical calculations
+    upper_bit_bound = 25
     
     
     cumsum = 0.0
@@ -166,5 +165,21 @@ def binary_encode(decimal_code):
             #If did not go over, then contribute this fractional bit
             cumsum += 2**(-i)
             binary_encoding += '1'
+    '''
+    
+    #Give output in consitent number of bits by scaling by 2^25
+    fxp_int = int( decimal_code * (2**25) )
+    binary_encoding = bin(fxp_int)
         
     return binary_encoding
+
+#Group helper functions
+#-----------------------------------------------------------------------------
+def arithmetic_encode(text):
+    pmf = compute_pmf(text)
+    cdf = compute_cdf(pmf)
+    
+    dec_code = decimal_encode(text, pmf, cdf)
+    bin_code = binary_encode(dec_code)
+    
+    return bin_code
