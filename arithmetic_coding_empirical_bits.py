@@ -48,10 +48,10 @@ from arithmetic_coding import arithmetic_encode
 #Num of combinations (assuming order matters): M^N
 #N = data length, M = number of symbols
 
+data_length = 8
+
 num_unique_symbols = 8
 symbols = np.arange(num_unique_symbols)
-
-data_length = 8
 
 theoretical_bound = np.int64(1 + np.log2( data_length**(num_unique_symbols) ) )
 print("Theoretical bound:", theoretical_bound, "bits")
@@ -95,7 +95,7 @@ plt.title(title)
 plt.grid()
 plt.minorticks_on()
 
-plt.xlim([0, 26])
+plt.xlim([0, 25+1])
 plt.ylim([0, 1])
 
 plt.show()
