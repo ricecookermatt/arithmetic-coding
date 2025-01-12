@@ -80,11 +80,25 @@ empirical_bound = max(num_bits)
 print("Empirical bound:", empirical_bound, "bits")
 
 #Minimum number of bits will be 1 for the case where data is all 0's or 1's
-#Need to add +2 to end of np.arange() because: 1) up to but not including
-#1) up to but not including caused by arange()
-#2) up to but not including caused by histogram()
-bin_edges = np.arange(1, 25+1+1, 0.5)
-plt.hist(num_bits, bins=bin_edges, density=True, align='left', edgecolor = 'k')
+#Need to add +1 to end of np.arange() because: 
+#1) up to but not including
+#2) histogram requires an additional point since specifying intervals
+#Using this to set histogram bin width to 1
+#First bin will be [1, 2)
+#Second bin will be [2, 3)
+#Third bin will be [3, 4)
+bin_edges = np.arange(1, 25 + 1 + 1)
+
+
+x = np.histogram(num_bits, bins=bin_edges, density=True)
+plt.figure(1)
+plt.bar(bin_edges[:-1], x[0], edgecolor = 'k')
+
+#Find expected number of bits via dot product
+#@ operator is shorthand for np.matmul()
+#For N = 8, M = 8, E[X] rounded up = 21
+avg_b = x[0] @ x[1][:-1]
+print("Expected number of bits:", avg_b, "bits")
 
 plt.xlabel("Minimum number of bits")
 plt.ylabel("Probability")
@@ -97,5 +111,3 @@ plt.minorticks_on()
 
 plt.xlim([0, 25+1])
 plt.ylim([0, 1])
-
-plt.show()
