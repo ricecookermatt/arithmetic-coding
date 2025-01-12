@@ -36,6 +36,12 @@ Theorized bound:
     To make more intuitive with the addition of the extra bit:
         
     1 + log2[ (1/M)^(-N) ]
+    
+   
+    It can also be expressed as 1 + (N/M)*log2[ N^M ] = 1 + log2(N^N)
+    Comment: Do the alphabet size doesn't matter?
+    Need to check my assumption on the formulas raising pmf
+    
 """
 
 import numpy as np
@@ -50,10 +56,12 @@ from arithmetic_coding import arithmetic_encode
 
 data_length = 8
 
-num_unique_symbols = 8
+num_unique_symbols = 2
 symbols = np.arange(num_unique_symbols)
 
-theoretical_bound = np.int64(1 + np.log2( data_length**(num_unique_symbols) ) )
+ratio = data_length / num_unique_symbols
+
+theoretical_bound = np.int64(1 + ratio*np.log2( data_length**(num_unique_symbols) ) )
 print("Theoretical bound:", theoretical_bound, "bits")
 
 
