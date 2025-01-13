@@ -26,9 +26,37 @@ TO-DO:
 
 """
 
+from collections import Counter
+from itertools import accumulate
+
 #-----------------------------------------------------------------------------
 # Encoding
 #-----------------------------------------------------------------------------
+
+text = 'ADBAACBA'
+
+#1. Pythonic way to calculate empirical distributions (pmf and cdf)
+def compute_distributions(data):
+    histogram = Counter(data)
+    
+    total = histogram.total()
+    #total = len(data)
+    
+    for key in histogram:
+        histogram[key] /= total
+    
+    return histogram
+
+hist = compute_distributions(text)
+hist_keys = hist.keys()
+hist_values = hist.values()
+
+pmf = hist.most_common() #Give a sorted list based on the counts
+pmf.sort(key=lambda pmf: (pmf[1], pmf[0]) ) #Sort by counts first then item
+
+
+
+
 
 #1. Compute PMF
 #-----------------------------------------------------------------------------
