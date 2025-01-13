@@ -69,7 +69,7 @@ def compute_pmf(text):
         char_pmf.append( (char_list[i], char_count[i]) )
         
         
-    #Sort the list in ascending order based on pmf (second element) then A-Z
+    #Sort the list in ascending order based on pmf (second element)
     char_pmf.sort(key=lambda char_pmf: char_pmf[1])
     
     return char_pmf
@@ -132,7 +132,7 @@ def decimal_encode(text, char_pmf, char_cdf):
                 
         #"Zoom-in" within the occupied length and create a new sub-section
         encoding_upper = encoding_lower + delta*cdf_h
-        
+                
         #Need to update encoding_lower after encoding_upper since
         #blocking assignment and encoding_upper relies on encoding_lower
         
@@ -174,7 +174,7 @@ def binary_encode(decimal_code):
     '''
     
     #Give output in consitent number of bits by scaling by 2^25
-    #Scale by 25 bits because that is the WC bound (theoretical and empirical)
+    #Scale by 25 bits because that is the WC bound for N=8
     #For performing empirical testing, scale by a larger number to avoid
     #any possible loss of precision
     fxp_int = int( decimal_code * (2**25) )
@@ -209,7 +209,8 @@ def binary_decode(binary_code):
     dec_val = 0.0
     
     #Convert from binary to decimal
-    for string_pos in range(0, 25):
+    for string_pos in range(0, 25-1):
+        
         if binary_string[string_pos] == '1':
             
             fract_pos = string_pos + 1
@@ -241,15 +242,24 @@ def decimal_decode(dec_val, pmf, cdf):
     
     return decoded_text
 
-'''
-data = 'DACDDBCD'
-print(data)
+#Group helper functions
+#-----------------------------------------------------------------------------
+def arithmetic_decode(text, bin_code):
+    pmf = compute_pmf(text)
+    cdf = compute_cdf(pmf)
+    
+    dec_val = binary_decode(bin_code)
+    data_recovered = decimal_decode(dec_val, pmf, cdf)
+    
+    return data_recovered
 
-pmf = compute_pmf(data)
-cdf = compute_cdf(pmf)
-enc = arithmetic_encode(data)
 
-dec_val = binary_decode(enc)
-data_recovered = decimal_decode(dec_val, pmf, cdf)
-print(data_recovered)
-'''
+dat_a = '01010101'
+dat_b = '10101010'
+
+#If there is a tie, then CDF goes by order they appeared. Incorrect
+code_a = arithmetic_encode(dat_a) #pmf = [('0', 0.5), ('1', 0.5)]
+code_b = arithmetic_encode(dat_b) #pmf = [('1', 0.5), ('0', 0.5)]
+
+x = arithmetic_decode(dat_a, code_a)
+y = arithmetic_decode(dat_b, code_b)
