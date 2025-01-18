@@ -54,7 +54,7 @@ from arithmetic_coding import arithmetic_encode
 #Num of combinations (assuming order matters): M^N
 #N = data length, M = number of symbols
 
-data_length = 16 #Number of ASCII characters in the text
+data_length = 16 #Number of ASCII characters in the text (Assume 2 bytes)
 data_bit_length = 8*data_length
 print("Uncoded data length:", data_bit_length, "bits")
 
@@ -73,7 +73,7 @@ print("Theoretical bound:", theoretical_bound, "bits")
 #Maximum number of combinations
 #max_sims = num_unique_symbols**data_length
 #If running 1 giant sim, then might be better running smaller sims and using central limit theorem
-max_sims = 100000
+max_sims = 1000000
 num_bits = np.zeros(max_sims, dtype='int64')
 
 #Create generator object
@@ -82,13 +82,13 @@ rng = np.random.default_rng()
 
 for i in range(max_sims):
     #Randomize data using discrete uniform distribution
-    data = rng.integers(0, max(symbols), data_length, endpoint=True)
+    data = rng.integers(1, num_unique_symbols, data_length, endpoint=True)
     #print(data)
     
     bin_code = arithmetic_encode(data)
     #print(bin_code)
     
-    #Need to add 1 since start at 0 and subtract by 2 since string prefix '0b'
+    #Need to add 1 since index start at 0 and subtract by 2 since string prefix '0b'
     min_bits = 1 + bin_code.rfind('1') - 2
     num_bits[i] = min_bits
     
@@ -106,6 +106,12 @@ print("Empirical bound:", empirical_bound, "bits")
 #First bin will be [1, 2)
 #Second bin will be [2, 3)
 #Third bin will be [3, 4)
+
+#Checking precision
+#import sys
+#epsilon = sys.float_info.epsilon
+#max_b = -np.log2(epsilon) #Returns 53 bits
+#Our empirical results are limited by precision!!
 
 bit_limit = 64
 bin_edges = np.arange(1, bit_limit + 1 + 1)

@@ -209,7 +209,18 @@ def binary_encode(decimal_code):
     #Scale by 25 bits because that is the WC bound for N=8
     #For performing empirical testing, scale by a larger number to avoid
     #any possible loss of precision
-    fxp_int = int( decimal_code * (2**64) )
+    #
+    #Finding max integer size for our system
+    #import sys
+    #max_val = sys.maxsize
+    #max_b = np.log2(max_val) #Returns 63 bits
+    #
+    #Checking precision
+    #import sys
+    #epsilon = sys.float_info.epsilon
+    #max_b = -np.log2(epsilon) #Returns 53 bits
+    
+    fxp_int = int( decimal_code * (2**63) )
     binary_encoding = bin(fxp_int)
         
     return binary_encoding
