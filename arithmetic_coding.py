@@ -27,35 +27,39 @@ TO-DO:
 """
 
 from collections import Counter
-from itertools import accumulate
+#from itertools import accumulate
 
 #-----------------------------------------------------------------------------
 # Encoding
 #-----------------------------------------------------------------------------
 
 text = 'ADBAACBA'
+text = text[::-1]
 
 #1. Pythonic way to calculate empirical distributions (pmf and cdf)
 def compute_distributions(data):
     histogram = Counter(data)
+    
+    #To be converted into a list later
+    dict_items = histogram.items() #dict_items([('A', 4), ('D', 1), ('B', 2), ('C', 1)])
+    dict_keys = histogram.keys() #dict_keys(['A', 'D', 'B', 'C'])
+    dict_values = histogram.values() #dict_values([4, 1, 2, 1])
+    
+    #Just create list based on Counter object
+    #Sort it
+    #Extract the keys and values
+    #Reassmble into new dict/list?
     
     total = histogram.total()
     #total = len(data)
     
     for key in histogram:
         histogram[key] /= total
+        
+    pmf = histogram.most_common() #Give a sorted list based on the counts
+    pmf.sort(key=lambda pmf: (pmf[1], pmf[0]) ) #Sort by counts first then item
     
-    return histogram
-
-hist = compute_distributions(text)
-hist_keys = hist.keys()
-hist_values = hist.values()
-
-pmf = hist.most_common() #Give a sorted list based on the counts
-pmf.sort(key=lambda pmf: (pmf[1], pmf[0]) ) #Sort by counts first then item
-
-
-
+    return pmf
 
 
 #1. Compute PMF
@@ -97,8 +101,8 @@ def compute_pmf(text):
         char_pmf.append( (char_list[i], char_count[i]) )
         
         
-    #Sort the list in ascending order based on pmf (second element)
-    char_pmf.sort(key=lambda char_pmf: char_pmf[1])
+    #Sort the list in ascending order based on pmf (second element), then A-Z
+    char_pmf.sort(key=lambda char_pmf: (char_pmf[1], char_pmf[0]))
     
     return char_pmf
 
@@ -205,7 +209,7 @@ def binary_encode(decimal_code):
     #Scale by 25 bits because that is the WC bound for N=8
     #For performing empirical testing, scale by a larger number to avoid
     #any possible loss of precision
-    fxp_int = int( decimal_code * (2**25) )
+    fxp_int = int( decimal_code * (2**64) )
     binary_encoding = bin(fxp_int)
         
     return binary_encoding
@@ -213,11 +217,14 @@ def binary_encode(decimal_code):
 #Group helper functions
 #-----------------------------------------------------------------------------
 def arithmetic_encode(text):
-    pmf = compute_pmf(text)
+    #pmf = compute_pmf(text)
+    pmf = compute_distributions(text)
+    
     cdf = compute_cdf(pmf)
     
     dec_code = decimal_encode(text, pmf, cdf)
     bin_code = binary_encode(dec_code)
+    
     
     return bin_code
 
@@ -281,13 +288,4 @@ def arithmetic_decode(text, bin_code):
     
     return data_recovered
 
-
-dat_a = '01010101'
-dat_b = '10101010'
-
-#If there is a tie, then CDF goes by order they appeared. Incorrect
-code_a = arithmetic_encode(dat_a) #pmf = [('0', 0.5), ('1', 0.5)]
-code_b = arithmetic_encode(dat_b) #pmf = [('1', 0.5), ('0', 0.5)]
-
-x = arithmetic_decode(dat_a, code_a)
-y = arithmetic_decode(dat_b, code_b)
+arithmetic_encode(text)
